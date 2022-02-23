@@ -1,0 +1,91 @@
+
+package com.example.faceandfingerauthenticationapp;
+
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
+
+import java.util.concurrent.Executor;
+
+public class MainActivity extends AppCompatActivity {
+
+    //User interface (UI) views
+    private Button authenticationButton;
+    private TextView statusTextView;
+    private ImageView faceImageView;
+
+    //
+    private Executor executor;
+    private BiometricPrompt biometricPrompt;
+    private BiometricPrompt.PromptInfo promptInfo;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        authenticationButton.findViewById(R.id.auth_button);
+        statusTextView.findViewById(R.id.auth_textView);
+        faceImageView.findViewById(R.id.face_auth_imageView);
+        try {
+            //initialize the values
+            executor = ContextCompat.getMainExecutor(this);
+            biometricPrompt = new BiometricPrompt(MainActivity.this, executor, new BiometricPrompt.AuthenticationCallback() {
+                @Override
+                public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                    super.onAuthenticationError(errorCode, errString);
+                    // This function do action if there is any error while doing Authentication
+                    statusTextView.setText("Error: " + errString);
+                }
+
+                @Override
+                public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                    super.onAuthenticationSucceeded(result);
+                    // This function will send a message if the Authentication is successful
+                    statusTextView.setText("the Authentication is successful");
+
+                }
+
+                @Override
+                public void onAuthenticationFailed() {
+                    super.onAuthenticationFailed();
+                    // This function will send a message if the Authentication is failed
+                    statusTextView.setText("the Authentication failed");
+
+
+                }
+            });
+
+            //setup title and dialog of the Authentication
+            promptInfo = new BiometricPrompt.PromptInfo.Builder().setTitle("Biometric Authentication")
+                    .setSubtitle("Login using fingerprint or face")
+                    .setNegativeButtonText("Cancel")
+                    .build();
+
+            authenticationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // show the dialog of the Authentication
+                    biometricPrompt.authenticate(promptInfo);
+
+                }
+            });
+        }catch (Exception e){
+            Toast.makeText(this, "Error Message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+}
+
+
+
+---------------------------------------------------------------------
+
+ //this is an added dependency
+    implementation 'androidx.biometric:biometric:1.1.0'
